@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>ArcGIS API for JavaScript Tutorials: Display a map</title>
+
+    <style>
+        html,
+        body,
+        #viewDiv {
+            padding: 0;
+            margin: 0;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.23/esri/themes/light/main.css">
+	<link href="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/css/bootstrap.min.css" rel="stylesheet">
+	<script src="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/js/bootstrap.bundle.min.js"></script>
+	<script src="https://js.arcgis.com/4.23/"></script>
+	
+    <script>
+        require([
+        "esri/config",
+        "esri/Map", 
+        "esri/views/MapView",
+        "esri/layers/MapImageLayer",
+        "esri/geometry/Point",
+        "esri/widgets/LayerList",
+        "esri/layers/FeatureLayer",
+        "esri/core/reactiveUtils",
+		"esri/PopupTemplate",
+		"esri/layers/GeoJSONLayer",
+		"esri/Graphic",
+		"esri/symbols/SimpleMarkerSymbol",
+		"esri/renderers/SimpleRenderer",
+		"esri/Color",
+		"esri/symbols/WebStyleSymbol",
+		"esri/geometry/geometryEngine",
+		"esri/widgets/Legend"], function (esriConfig,
+          Map, 
+          MapView,
+          MapImageLayer,EsriPoint,LayerList,FeatureLayer,reactiveUtils,PopupTemplate,GeoJSONLayer,Graphic,
+		  SimpleMarkerSymbol,
+		  SimpleRenderer,
+		  Color,
+		  WebStyleSymbol,
+		  geometryEngine,
+		  Legend) {
+  
+          esriConfig.apiKey = "AAPK449340f85b664e6b802d2d0e65eb4849vlSII8YqKpEj5Fn0hCy2qr4QyOAZRZSB6XWDc2-X8pFlNoRYoQoetUvFs1Y_JVKL";
+  
+          const map = new Map({
+            basemap: "arcgis-streets-night" // Basemap layer service
+          });
+		  
+		  
+		  
+          
+          const view = new MapView({
+            map: map,
+            center: [114.805, 32.027], // Longitude, latitude
+            zoom: 6, // Zoom level
+            container: "viewDiv" // Div element
+          });
+		  
+			
+		  const simpleMS = new SimpleMarkerSymbol({
+			  color: new Color([255,171,94]),
+			  size: 10,
+			  style: "diamond"
+		  });
+		  
+		  const simpleR = new SimpleRenderer({
+			  symbol: simpleMS
+		  });
+		  
+		  
+		  const layer = new FeatureLayer({
+		    portalItem: {  // autocasts as new PortalItem()
+		      id: "6e826a01eac24f50a710d260c26f9d5d",
+		    },  // the first layer in the service is returned
+			title: "革命根据地"
+		  });
+		  //
+		  map.add(layer);
+		  
+		  // view.ui.remove("attribution");
+		  // view.ui.remove("zoom");
+		  
+		  
+		  view.on("click", function(evt) {
+		  	view.graphics.removeAll();
+		  	if (evt.button != 0) return;
+		  	let query = layer.createQuery();
+		  	query.geometry = view.toMap(evt); // the point location of the pointer
+		  	query.distance = 2;
+		  	query.units = "kilometers";
+		  	query.spatialRelationship = "intersects"; // this is the default
+		  	query.returnGeometry = true;
+		  	query.outFields = ["*"];
+		  	//query.where = "mag > 3";
+		  
+		  	//geojsonlayer.queryFeatureCount(query).then(function (abc) { alert("Layer: "+abc) });
+		  	layer.queryFeatures(query).then(function(abc) {
+		  
+		  		abc.features.forEach(function(item) {
+		  
+		  			const bufferPoly = geometryEngine.geodesicBuffer(item.geometry, 10,
+		  				'kilometers');
+		  
+		  			var g = new Graphic({
+		  				geometry: bufferPoly, //item.geometry,
+		  				attributes: item.attributes,
+		  				symbol: {
+		  					type: "simple-fill",
+		  					color: [131, 56, 236, 0.3]
+		  					//size: 3,//item.attributes['magnitude'] * item.attributes['magnitude'],
+		  					//style: "square"
+		  
+		  				}
+		  			});
+		  
+		  			view.graphics.add(g);
+		  
+		  			const area = geometryEngine.geodesicArea(item.geometry,
+		  				"square-kilometers");
+		  
+		  			});
+		  
+		  		});
+		  
+		  	});
+			
+			view.ui.add(new Legend({ view }), "top-right");
+		  
+		  });
+		  
+		  
+		  // const geojsonlayer = new GeoJSONLayer({
+		  //     url: 'data/China.json',
+		  //     copyright: "Province Polygon"
+		  // });
+		  // //geojsonlayer.renderer = simpleR;
+		  // geojsonlayer.outFields = ["*"]; 
+		  // map.add(geojsonlayer);
+         
+      
+    </script>
+
+</head>
+
+<body style="background-color: #CCCCCC;">
+		<nav class="navbar navbar-expand-sm bg-light navbar-light" style="background-image: url(images/1647566725653.jpeg);">
+			<a class="navbar-brand" style="font-size: 42pt;">GIS🌏</a> 
+			<ul class="navbar-nav">
+				<li class="nav-item active">
+					<a class="nav-link" href="https://baike.baidu.com/item/7%C2%B720%E9%83%91%E5%B7%9E%E7%89%B9%E5%A4%A7%E6%9A%B4%E9%9B%A8/58047836?fr=aladdin" style="color: darkblue;font-size: 22pt;">♦7.20暴雨</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="images/d52a2834349b033b5bb53c93528121d3d539b6001760.gif" style="color: darkblue;font-size: 22pt;">♦重灾区</a>
+				</li>
+				<li class="nav-item dropdown">
+				  <a class="nav-link dropdown-toggle" id="navbardrop" data-bs-toggle="dropdown" style="color: #666666;font-size: 22pt;">
+					历史天气查询
+				  </a>
+				  <div class="dropdown-menu">
+					<a class="dropdown-item" href="https://lishi.tianqi.com/zhengzhou/202106.html">2021年6月份</a>
+					<a class="dropdown-item" href="https://lishi.tianqi.com/zhengzhou/202107.html">2021年7月份</a>
+					<a class="dropdown-item" href="https://lishi.tianqi.com/zhengzhou/202108.html">2021年8月份</a>
+				  </div>
+				</li>	
+			</ul>
+		</nav>
+		<div id="viewDiv"></div>
+	</body>
+</html> 
